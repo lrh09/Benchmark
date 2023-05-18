@@ -1,0 +1,23 @@
+version: '3.4'
+
+services:
+  db_benchmark:
+    image: db_benchmark
+    build:
+      context: ./ExecutionBenchmark  # Update this line
+      dockerfile: Dockerfile
+    depends_on:
+      - db_postgres
+      - db_mssql
+
+  db_postgres:
+    image: postgres
+    environment:
+      POSTGRES_USER: random
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: TestPostgresDb
+  db_mssql:
+    image: mcr.microsoft.com/mssql/server
+    environment:
+      SA_PASSWORD: "Random123!"
+      ACCEPT_EULA: "Y"

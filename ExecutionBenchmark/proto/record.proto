@@ -1,0 +1,14 @@
+syntax = "proto3";
+import "google/protobuf/timestamp.proto";
+
+message Record {
+  int32 id = 1;
+  string name = 2;
+  string data0 = 3;
+  string data1 = 4;
+  string data2 = 5;
+  string data3 = 6;
+  string uuid = 7;
+  google.protobuf.Timestamp created = 8;
+  google.protobuf.Timestamp updated = 9;
+}
