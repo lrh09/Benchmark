@@ -3,6 +3,7 @@ namespace ExecutionBenchmark;
 public static class Constants
 {
     public const string PostgresConnectionString = "Host=localhost;Port=5430;Database=postgres;Username=postgres;Password=Random123!";
+    public const string PostgresConnectionStringDev = "Host=pe-dev;Port=5432;Database=test;Username=developer;Password=iPQ339YIGtHOzYchHblq";
     public const string MsSqlConnectionString = "Server=localhost,1436;Database=master;User Id=sa;Password=Random123!;TrustServerCertificate=true";
 
     public const string RabbitExchangeName = "MyExchange";
