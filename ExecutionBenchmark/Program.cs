@@ -15,4 +15,4 @@ await BasicTest.PostgresRawSql(environment);
 // await BasicTest.DannyPostgre();
 // await BasicTest.RhPostgre();`
 
-// var summary = BenchmarkRunner.Run<DbBenchmark>();
+var summary = BenchmarkRunner.Run<BenchmarkTests>();

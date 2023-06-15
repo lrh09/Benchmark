@@ -15,39 +15,32 @@ public class RawSqlDbService
 
     public RawSqlDbService(Environment environment)
     {
-
-        _connection = environment switch
-        {
-            Environment.Local => new NpgsqlConnection(Constants.PostgresConnectionString),
-            Environment.DevServer => new NpgsqlConnection(Constants.PostgresConnectionStringDev),
-            _ => throw new ArgumentOutOfRangeException(nameof(environment), environment, null)
-        };
-            
-        if (_connection.State != ConnectionState.Open)
-        {
-            _connection.Open();
-        }
+        _connection = GetOpenConnection(environment);
+        _connection = GetOpenConnection(environment);
     }
 
-    public async Task SaveOrderAndReportAsync(CryptoOrder order, TradeReport report)
+    public NpgsqlConnection GetOpenConnection(Environment environment)
     {
-        if (_connection.State != ConnectionState.Open)
+        var connectionString = GetConnectionString(environment);
+        var connection = new NpgsqlConnection(connectionString);
+
+        if (connection.State != ConnectionState.Open)
         {
-            await _connection.OpenAsync();
+            connection.Open();
         }
 
-        await using var transaction = await _connection.BeginTransactionAsync();
-        try
+        return connection;
+    }
+
+    private string GetConnectionString(Environment environment)
+    {
+        // Retrieve the connection string based on the environment
+        return environment switch
         {
-            await SaveOrderCommandAsync(order);
-            await SaveReportCommandAsync(report);
-            await transaction.CommitAsync();
-        }
-        catch (Exception e)
-        {
-            await transaction.RollbackAsync();
-            throw;
-        }
+            Environment.Local => Constants.PostgresConnectionString,
+            Environment.DevServer => Constants.PostgresConnectionStringDev,
+            _ => throw new ArgumentOutOfRangeException(nameof(environment), environment, null)
+        };
     }
 
     public async Task SaveReportCommandAsync(TradeReport report)
@@ -66,7 +59,7 @@ public class RawSqlDbService
         // Console.WriteLine($"Saved Report: {report.Id}");
     }
     
-    public async Task SaveOrderCommandAsync(CryptoOrder order)
+    public async Task SaveOrderCommandAsync(CryptoOrder order, NpgsqlConnection connection)
     {
         string orderDate = order.OrderDate.ToString("yyyy-MM-dd HH:mm:ss");
 
@@ -76,7 +69,7 @@ public class RawSqlDbService
                 order.Id, order.OrderId, order.Symbol, order.Price, order.Quantity, orderDate, (int)order.Status,
                 order.ClientName, (int)order.Type, order.StopLoss, order.TakeProfit);
 
-        using var orderCommand = new NpgsqlCommand(orderSql, (NpgsqlConnection)_connection); // or SqlCommand for MSSQL
+        using var orderCommand = new NpgsqlCommand(orderSql, connection); // or SqlCommand for MSSQL
         await orderCommand.ExecuteNonQueryAsync();
         
         // Console.WriteLine($"Saved Order: {order.Id}");

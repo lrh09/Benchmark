@@ -1,7 +1,4 @@
-using System;
 using System.Diagnostics;
-using System.Threading.Tasks;
-using ExecutionBenchmark.Connections;
 using ExecutionBenchmark.Models;
 using ExecutionBenchmark.Services;
 using Environment = ExecutionBenchmark.Services.Environment;
@@ -31,7 +28,7 @@ namespace ExecutionBenchmark.Tests
             var service = new RawSqlDbService(environment);
             
             stopwatch.Start();
-            await service.SaveOrderCommandAsync(order);
+            await service.SaveOrderCommandAsync(order, service.GetOpenConnection(environment));
             stopwatch.Stop();
             Console.WriteLine($"PostgresRawSql: {stopwatch.ElapsedMilliseconds} ms");
 

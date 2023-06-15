@@ -1,6 +1,7 @@
 using BenchmarkDotNet.Attributes;
 using ExecutionBenchmark.Models;
 using ExecutionBenchmark.Services;
+using Npgsql;
 using Environment = ExecutionBenchmark.Services.Environment;
 
 namespace ExecutionBenchmark.Tests;
@@ -11,38 +12,36 @@ public class BenchmarkTests
     
     private readonly RawSqlDbService _rawSqlDbService;
     private readonly RabbitMqService _rabbitMqService;
-    private CryptoOrder _order = Generator.GetSampleCryptoOrders(1).First();
+    private readonly List<CryptoOrder> _orders = Generator.GetSampleCryptoOrders(50);
+    
+    private readonly NpgsqlConnection _dbConnection;
 
     public BenchmarkTests()
     {
-        // Initialize services
         _rawSqlDbService = new RawSqlDbService(_environment);
         _rabbitMqService = new RabbitMqService(_environment);
+        
+        _dbConnection = _rawSqlDbService.GetOpenConnection(_environment);
     }
-
-    [GlobalSetup]
-    public void Setup()
-    {
-        // Perform setup logic if needed
-    }
-
-    // [GlobalCleanup]
-    // public void Cleanup()
-    // {
-    //     // Clean up logic after all benchmarks have run
-    //     Task.Run(() => _rawSqlDbService.CleanUpAsync()).Wait();
-    //     _rabbitMqService.CleanUpAsync();
-    // }
 
     [Benchmark]
-    public void InsertWithRawSql()
+    public async Task InsertWithRawSql()
     {
-        Task.Run(() => _rawSqlDbService.SaveOrderCommandAsync(_order)).Wait();
+        foreach (var order in _orders)
+        {
+            order.Id = Guid.NewGuid();
+            await _rawSqlDbService.SaveOrderCommandAsync(order, _dbConnection);
+        }
+        
     }
 
     [Benchmark]
     public void QueueWithRabbitMq()
     {
-        _rabbitMqService.QueueOrder(_order);
+        foreach (var order in _orders)
+        {
+            order.Id = Guid.NewGuid();
+            _rabbitMqService.QueueOrder(order);
+        }
     }
 }

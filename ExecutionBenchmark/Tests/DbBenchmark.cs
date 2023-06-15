@@ -1,5 +1,4 @@
 using BenchmarkDotNet.Attributes;
-using ExecutionBenchmark.Connections;
 using ExecutionBenchmark.Models;
 using ExecutionBenchmark.Services;
 using Environment = ExecutionBenchmark.Services.Environment;
@@ -35,7 +34,7 @@ public class DbBenchmark
     {
         foreach (var order in _orders)
         {
-            await _rawSqlDbService.SaveOrderCommandAsync(order);
+            await _rawSqlDbService.SaveOrderCommandAsync(order, _rawSqlDbService.GetOpenConnection(_environment));
         }
     }
 
